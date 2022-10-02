@@ -84,7 +84,7 @@ class TermManager(TermManagerBase):
     @tornado.gen.coroutine
     def create_term(self, rows, cols, cwd=None):
         """Create a new virtual terminal."""
-        pid = hashlib.md5(str(time.time()).encode('utf-8')).hexdigest()[0:6]
+        pid = hashlib.md5(str(time.time()).encode('utf-8')).hexdigest()[:6]
         # We need to do percent decoding for reading the cwd through a cookie
         # For further information see spyder-ide/spyder-terminal#225
         cwd = unquote(cwd)

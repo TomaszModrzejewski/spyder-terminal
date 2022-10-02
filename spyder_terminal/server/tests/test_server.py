@@ -5,6 +5,7 @@ Tornado server-side tests.
 Note: This uses tornado.testing unittest style tests
 """
 
+
 import os
 import sys
 import os.path as osp
@@ -17,7 +18,7 @@ from tornado import testing, websocket, gen
 from tornado.concurrent import Future
 from spyder.utils.programs import find_program
 
-sys.path.append(osp.realpath(osp.dirname(__file__) + "/.."))
+sys.path.append(osp.realpath(f"{osp.dirname(__file__)}/.."))
 
 from spyder_terminal.server.common import create_app
 
@@ -106,7 +107,7 @@ class TerminalServerTests(testing.AsyncHTTPTestCase):
         msg = yield sock.read_message()
         print(msg)
         test_msg = 'pwd'
-        sock.write_message(' ' + test_msg)
+        sock.write_message(f' {test_msg}')
         msg = ''
         while test_msg not in msg:
             msg += yield sock.read_message()
@@ -164,16 +165,14 @@ class TerminalServerTests(testing.AsyncHTTPTestCase):
         # can be determined by sys.executable. Otherwise just hope that there
         # is a `python` in the shell's path which works with the script.
         python_bin = sys.executable or "python"
-        python_exec = python_bin + ' print_size.py' + LINE_END
+        python_exec = f'{python_bin} print_size.py{LINE_END}'
         sock.write_message(python_exec)
 
         expected_size = '(73, 23)'
         msg = ''
         fail_retry = 50
         tries = 0
-        while expected_size not in msg:
-            if tries == fail_retry:
-                break
+        while expected_size not in msg and tries != fail_retry:
             msg = yield sock.read_message()
             tries += 1
         self.assertIn(expected_size, msg)

@@ -41,9 +41,10 @@ ROUTES = REST + WS + WEB
 def gen_routes(close_future):
     """Return a list of HTML redirection routes."""
     if close_future is not None:
-        ws = []
-        for route in WS:
-            ws.append((route[0], route[1],
-                       dict(close_future=close_future)))
+        ws = [
+            (route[0], route[1], dict(close_future=close_future))
+            for route in WS
+        ]
+
         return REST + ws + WEB
     return ROUTES

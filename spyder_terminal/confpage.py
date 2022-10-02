@@ -36,15 +36,11 @@ class TerminalConfigPage(PluginConfigPage):
         # Custom shell options
         shell_group = QGroupBox(_("Terminal shell"))
         shell_layout = QVBoxLayout()
-        if WINDOWS:
-            self.shells = WINDOWS_SHELLS
-        else:
-            self.shells = UNIX_SHELLS
+        self.shells = WINDOWS_SHELLS if WINDOWS else UNIX_SHELLS
+        valid_shells = [
+            shell for shell in self.shells if find_program(shell) is not None
+        ]
 
-        valid_shells = []
-        for shell in self.shells:
-            if find_program(shell) is not None:
-                valid_shells.append(shell)
         valid_shells = zip(valid_shells, valid_shells)
         if WINDOWS:
             default_option = 'cmd'
@@ -52,11 +48,7 @@ class TerminalConfigPage(PluginConfigPage):
             default_option = 'bash'
         else:
             mac_ver = LooseVersion(platform.mac_ver()[0])
-            if mac_ver >= LooseVersion('10.15.0'):
-                # Catalina changed the default shell to zsh
-                default_option = 'zsh'
-            else:
-                default_option = 'bash'
+            default_option = 'zsh' if mac_ver >= LooseVersion('10.15.0') else 'bash'
         shell_combo = self.create_combobox(_("Select the shell interpreter:"),
                                            valid_shells, 'shell', restart=True,
                                            default=default_option)

@@ -46,7 +46,7 @@ repo_root = os.path.dirname(os.path.abspath(__file__))
 
 def run(cmd, *args, **kwargs):
     """Echo a command before running it"""
-    log.info('> ' + list2cmdline(cmd))
+    log.info(f'> {list2cmdline(cmd)}')
     kwargs['shell'] = (sys.platform == 'win32')
     return check_call(cmd, *args, **kwargs)
 

@@ -59,11 +59,10 @@ EXTRAS_REQUIRE = {
 }
 
 # Verify that COMPONENTS exist before trying to build wheels
-if any([arg == 'bdist_wheel' for arg in sys.argv]):
-    if not osp.isdir(COMPONENTS):
-        print("\nWARNING: Server components are missing!! Please run "
-              "'python setup.py sdist' first.\n")
-        sys.exit(1)
+if any(arg == 'bdist_wheel' for arg in sys.argv) and not osp.isdir(COMPONENTS):
+    print("\nWARNING: Server components are missing!! Please run "
+          "'python setup.py sdist' first.\n")
+    sys.exit(1)
 
 cmdclass = {
     'build_static': BuildStatic,

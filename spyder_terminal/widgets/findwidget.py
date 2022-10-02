@@ -62,12 +62,11 @@ class FindTerminal(FindReplace):
                 found = self.parent.search_previous(text, case=case,
                                                     regex=regexp, word=word)
 
-            found = False if found == -1 else True
+            found = found != -1
             stylesheet = self.STYLE[found]
             tooltip = self.TOOLTIP[found]
             if not found and regexp:
-                error_msg = regexp_error_msg(text)
-                if error_msg:  # special styling for regexp errors
+                if error_msg := regexp_error_msg(text):
                     stylesheet = self.STYLE['regexp_error']
                     tooltip = self.TOOLTIP['regexp_error'] + ': ' + error_msg
             self.search_text.lineEdit().setStyleSheet(stylesheet)
