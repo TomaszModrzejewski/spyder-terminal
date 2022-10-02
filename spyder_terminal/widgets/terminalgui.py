@@ -125,13 +125,11 @@ class TerminalWidget(QFrame, SpyderWidgetMixin):
         self.current_theme = self.set_theme({})
         self.set_scrollbar_style()
         options = self.get_conf_options()
-        dict_options = {}
-        for option in options:
-            dict_options[option] = self.get_conf(option)
+        dict_options = {option: self.get_conf(option) for option in options}
         self.apply_settings(dict_options)
         self.apply_zoom()
-        shell_name = self.get_conf('shell')
         if os.name != 'nt':
+            shell_name = self.get_conf('shell')
             # Find environment variables in the home directory given the actual
             # shell
             env_route = self.ENV_ROUTES[shell_name]
@@ -172,26 +170,34 @@ class TerminalWidget(QFrame, SpyderWidgetMixin):
     def set_theme(self, _values):
         """Set theme for the terminal."""
         supported_themes = ANSI_COLORS
-        new_theme = {}
         theme = self.get_conf('selected', section='appearance')
         color_scheme = self.get_conf('ui_theme', section='appearance')
         if theme not in supported_themes:
             theme = 'spyder' if color_scheme == 'light' else 'spyder/dark'
-        new_theme['background'] = self.get_conf(
-            '{}/background'.format(theme), section='appearance')
+        new_theme = {
+            'background': self.get_conf(
+                f'{theme}/background', section='appearance'
+            )
+        }
+
         new_theme['foreground'] = self.get_conf(
-            '{}/normal'.format(theme), section='appearance')[0]
-        new_theme['cursor'] = self.get_conf(
-            '{}/normal'.format(theme), section='appearance')[0]
+            f'{theme}/normal', section='appearance'
+        )[0]
+
+        new_theme['cursor'] = self.get_conf(f'{theme}/normal', section='appearance')[0]
         new_theme['cursorAccent'] = self.get_conf(
-            '{}/ctrlclick'.format(theme), section='appearance')
+            f'{theme}/ctrlclick', section='appearance'
+        )
+
         new_theme['selection'] = self.get_conf(
-            '{}/occurrence'.format(theme), section='appearance')
+            f'{theme}/occurrence', section='appearance'
+        )
+
         theme_colors = ANSI_COLORS[theme]
         for color in theme_colors:
             new_theme[color] = theme_colors[color]
 
-        self.eval_javascript('setOption("{}", {})'.format('theme', new_theme))
+        self.eval_javascript(f'setOption("theme", {new_theme})')
         self.set_conf(
             'fontFamily', self.get_conf('font/family', section='appearance'))
         return new_theme
@@ -206,7 +212,8 @@ class TerminalWidget(QFrame, SpyderWidgetMixin):
                           'wholeWord': word,
                           'caseSensitive': case}
         return self.eval_javascript(
-            'searchNext("{}",{})'.format(text, json.dumps(search_options)))
+            f'searchNext("{text}",{json.dumps(search_options)})'
+        )
 
     def search_previous(self, text, case=False, regex=False, word=False):
         """Search in the terminal for the given regex."""
@@ -214,42 +221,38 @@ class TerminalWidget(QFrame, SpyderWidgetMixin):
                           'wholeWord': word,
                           'caseSensitive': case}
         return self.eval_javascript(
-            'searchPrevious("{}", {})'.format(text,
-                                              json.dumps(search_options)))
+            f'searchPrevious("{text}", {json.dumps(search_options)})'
+        )
 
     def exec_cmd(self, cmd):
         """Execute a command inside the terminal."""
         self.eval_javascript('exec("{0}")'.format(cmd))
 
     def __alive_loopback(self):
-        alive = self.is_alive()
-        if not alive:
-            self.terminal_closed.emit()
-        else:
+        if alive := self.is_alive():
             QTimer.singleShot(250, self.__alive_loopback)
+        else:
+            self.terminal_closed.emit()
 
     def is_alive(self):
         """Check if terminal process is alive."""
-        alive = self.eval_javascript('isAlive()')
-        return alive
+        return self.eval_javascript('isAlive()')
 
     def apply_zoom(self):
         zoom = self.get_conf('zoom')
         if zoom > 0:
-            for __ in range(0, zoom):
+            for __ in range(zoom):
                 self.view.increase_font(new_term=True)
         if zoom < 0:
-            for __ in range(0, -zoom):
+            for __ in range(-zoom):
                 self.view.decrease_font(new_term=True)
 
     def set_option(self, option_name, option):
         """Set a configuration option in the terminal."""
         if type(option) == int:
-            self.eval_javascript('setOption("{}", {})'.format(option_name,
-                                                              option))
+            self.eval_javascript(f'setOption("{option_name}", {option})')
         else:
-            self.eval_javascript('setOption("{}", "{}")'.format(option_name,
-                                                                option))
+            self.eval_javascript(f'setOption("{option_name}", "{option}")')
 
     def apply_settings(self, options):
         """Apply custom settings given an option dictionary."""
@@ -355,7 +358,7 @@ class TermView(QWebEngineView, SpyderWidgetMixin):
         if len(text.splitlines()) > 1:
             eol_chars = os.linesep
             text = eol_chars.join((text + eol_chars).splitlines())
-        self.eval_javascript('pasteText({})'.format(repr(text)))
+        self.eval_javascript(f'pasteText({repr(text)})')
 
     def clear(self):
         """Clear the terminal."""
@@ -385,7 +388,7 @@ class TermView(QWebEngineView, SpyderWidgetMixin):
         Evaluate Javascript instructions inside DOM with the expected prefix.
         """
         script = PREFIX + script
-        self.document.runJavaScript("{}".format(script), self.return_js_value)
+        self.document.runJavaScript(f"{script}", self.return_js_value)
 
     def return_js_value(self, value):
         """Return the value of the function evaluated in Javascript."""

@@ -6,6 +6,7 @@
 
 """Tests for the plugin."""
 
+
 # Test library imports
 
 import os
@@ -33,14 +34,8 @@ TERM_UP = 10000
 WINDOWS = os.name == 'nt'
 
 EXIT = 'exit'
-CLEAR = 'clear'
-if WINDOWS:
-    CLEAR = 'cls'
-
-PWD = 'pwd'
-if WINDOWS:
-    PWD = 'cd'
-
+CLEAR = 'cls' if WINDOWS else 'clear'
+PWD = 'cd' if WINDOWS else 'pwd'
 PREFIX = 'spyder_terminal.default.'
 
 
@@ -49,7 +44,8 @@ def check_pwd(termwidget):
     def callback(data):
         global html
         html = data
-    termwidget.body.runJavaScript(PREFIX + "getTerminalLines()", callback)
+
+    termwidget.body.runJavaScript(f"{PREFIX}getTerminalLines()", callback)
     try:
         return LOCATION in html
     except NameError:
@@ -61,9 +57,10 @@ def check_paste(termwidget, expected):
     def callback(data):
         global text
         text = data
-    termwidget.body.runJavaScript(PREFIX + "getTerminalLines()", callback)
+
+    termwidget.body.runJavaScript(f"{PREFIX}getTerminalLines()", callback)
     try:
-        return all([x in text for x in expected])
+        return all(x in text for x in expected)
     except NameError:
         return False
 
@@ -73,7 +70,8 @@ def check_output(termwidget, expected):
     def callback(data):
         global text
         text = data
-    termwidget.body.runJavaScript(PREFIX + "getTerminalLines()", callback)
+
+    termwidget.body.runJavaScript(f"{PREFIX}getTerminalLines()", callback)
     try:
         return expected in text
     except NameError:
@@ -84,8 +82,9 @@ def check_increase_font_size(term):
     def callback(data):
         global font_size
         font_size = data
+
     expected = 15
-    term.body.runJavaScript(PREFIX + "increaseFontSize()", callback)
+    term.body.runJavaScript(f"{PREFIX}increaseFontSize()", callback)
     try:
         return font_size > expected
     except NameError:
@@ -96,8 +95,9 @@ def check_decrease_font_size(term):
     def callback(data):
         global font_size
         font_size = data
+
     expected = 16
-    term.body.runJavaScript(PREFIX + "decreaseFontSize()", callback)
+    term.body.runJavaScript(f"{PREFIX}decreaseFontSize()", callback)
     try:
         return font_size < expected
     except NameError:
@@ -109,7 +109,8 @@ def check_fonts(term, expected):
     def callback(data):
         global term_fonts
         term_fonts = data
-    term.body.runJavaScript(PREFIX + "getFonts()", callback)
+
+    term.body.runJavaScript(f"{PREFIX}getFonts()", callback)
     try:
         return term_fonts == expected
     except NameError:
@@ -140,8 +141,7 @@ def check_num_tabs(terminal, ref_value):
 @pytest.fixture(scope="module")
 def qtbot_module(qapp, request):
     """Module fixture for qtbot."""
-    result = QtBot(request)
-    return result
+    return QtBot(request)
 
 
 @pytest.fixture(scope='module')
@@ -185,7 +185,7 @@ def test_terminal_paste(setup_terminal, qtbot_module):
 
     term = terminal.get_widget().get_current_term()
     port = terminal.get_widget().port
-    status_code = requests.get('http://127.0.0.1:{}'.format(port)).status_code
+    status_code = requests.get(f'http://127.0.0.1:{port}').status_code
     assert status_code == 200
 
     term.exec_cmd(f'{os.linesep}' * 2)
@@ -214,7 +214,7 @@ def test_terminal_color(setup_terminal, qtbot_module):
 
     term = terminal.get_widget().get_current_term()
     port = terminal.get_widget().port
-    status_code = requests.get('http://127.0.0.1:{}'.format(port)).status_code
+    status_code = requests.get(f'http://127.0.0.1:{port}').status_code
     assert status_code == 200
     qtbot_module.waitUntil(lambda: check_hex_to_rgb(term),  timeout=TERM_UP)
 
@@ -228,7 +228,7 @@ def test_terminal_find(setup_terminal, qtbot_module):
 
     term = terminal.get_widget().get_current_term()
     port = terminal.get_widget().port
-    status_code = requests.get('http://127.0.0.1:{}'.format(port)).status_code
+    status_code = requests.get(f'http://127.0.0.1:{port}').status_code
     assert status_code == 200
 
     term.exec_cmd('ls')
@@ -273,7 +273,7 @@ def test_terminal_font(setup_terminal, qtbot_module):
 
     term = terminal.get_widget().get_current_term()
     port = terminal.get_widget().port
-    status_code = requests.get('http://127.0.0.1:{}'.format(port)).status_code
+    status_code = requests.get(f'http://127.0.0.1:{port}').status_code
     assert status_code == 200
     term.set_font('Ubuntu Mono')
     expected = '\'Ubuntu Mono\', monospace'
@@ -315,7 +315,7 @@ def test_new_terminal(setup_terminal, qtbot_module):
 
     # Test if server is running
     port = terminal.get_widget().port
-    status_code = requests.get('http://127.0.0.1:{}'.format(port)).status_code
+    status_code = requests.get(f'http://127.0.0.1:{port}').status_code
     assert status_code == 200
 
     terminal.create_new_term()
@@ -324,7 +324,7 @@ def test_new_terminal(setup_terminal, qtbot_module):
     # Move to LOCATION
     # qtbot_module.keyClicks(term.view, 'cd {}'.format(LOCATION))
     # qtbot_module.keyPress(term.view, Qt.Key_Return)
-    term.exec_cmd('cd {}'.format(LOCATION_SLASH))
+    term.exec_cmd(f'cd {LOCATION_SLASH}')
 
     # Clear
     # qtbot_module.keyClicks(term.view, 'clear')
@@ -389,7 +389,7 @@ def test_terminal_cwd(setup_terminal, qtbot_module):
     qtbot_module.wait(1000)
 
     port = terminal.get_widget().port
-    status_code = requests.get('http://127.0.0.1:{}'.format(port)).status_code
+    status_code = requests.get(f'http://127.0.0.1:{port}').status_code
     assert status_code == 200
 
     # Revert cwd

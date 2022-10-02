@@ -2,6 +2,7 @@
 
 """Main terminal server point of entry."""
 
+
 import argparse
 import asyncio
 import logging
@@ -32,14 +33,12 @@ logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
 LOGGER = logging.getLogger(__name__)
 coloredlogs.install(level='info')
 
-clr = 'clear'
-if os.name == 'nt':
-    clr = 'cls'
+clr = 'cls' if os.name == 'nt' else 'clear'
 
 
 def main(port, shell):
     """Create and setup a new tornado server."""
-    LOGGER.info("Server is now at: 127.0.0.1:{}".format(port))
+    LOGGER.info(f"Server is now at: 127.0.0.1:{port}")
     LOGGER.info('Shell: {0}'.format(shell))
     application = create_app(shell)
     ioloop = tornado.ioloop.IOLoop.instance()

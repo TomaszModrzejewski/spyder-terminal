@@ -102,8 +102,7 @@ class TerminalMainWidget(PluginMainWidget):
         self.tabwidget.move_data.connect(self.move_tab)
         self.tabwidget.set_close_function(self.close_term)
 
-        if (hasattr(self.tabwidget, 'setDocumentMode') and
-                not sys.platform == 'darwin'):
+        if hasattr(self.tabwidget, 'setDocumentMode') and sys.platform != 'darwin':
             # Don't set document mode to true on OSX because it generates
             # a crash when the console is detached from the main window
             # Fixes Issue 561
@@ -298,7 +297,7 @@ class TerminalMainWidget(PluginMainWidget):
         elif code != 200:
             self.server_retries += 1
             QTimer.singleShot(250, self.__wait_server_to_start)
-        elif code == 200:
+        else:
             self.sig_server_is_ready.emit()
             self.server_ready = True
             self.create_new_term(give_focus=False)
@@ -330,12 +329,13 @@ class TerminalMainWidget(PluginMainWidget):
     @on_conf_change
     def apply_plugin_settings(self, options):
         """Apply the config settings."""
-        term_options = {}
-        for option in options:
-            if option == 'color_scheme_name':
-                term_options[option] = option
-            else:
-                term_options[option] = self.get_conf(option)
+        term_options = {
+            option: option
+            if option == 'color_scheme_name'
+            else self.get_conf(option)
+            for option in options
+        }
+
         for term in self.get_terms():
             term.apply_settings(term_options)
 
@@ -409,14 +409,12 @@ class TerminalMainWidget(PluginMainWidget):
 
     def search_next(self, text, case=False, regex=False, word=False):
         """Search in the current terminal for the given regex."""
-        term = self.get_current_term()
-        if term:
+        if term := self.get_current_term():
             term.search_next(text, case=case, regex=regex, word=word)
 
     def search_previous(self, text, case=False, regex=False, word=False):
         """Search in the current terminal for the given regex."""
-        term = self.get_current_term()
-        if term:
+        if term := self.get_current_term():
             term.search_previous(text, case=case, regex=regex, word=word)
 
     # ------ Public API (for tabs) ---------------------------
